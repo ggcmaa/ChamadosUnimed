@@ -7,6 +7,9 @@
     <!-- Fonte profissional do Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Poppins:wght@300;500&display=swap" rel="stylesheet">
     
+    <!-- Biblioteca HTML5-QRCode para leitura da câmera -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
     <style>
         /* --- ESTILOS GERAIS --- */
         :root {
@@ -160,6 +163,76 @@
             color: rgba(240, 246, 252, 0.3);
         }
 
+        /* --- INPUT COM BOTÃO DE QR CODE --- */
+        .input-qr-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .input-qr-group input {
+            flex: 1;
+        }
+
+        .btn-qr-scan {
+            background-color: var(--input-background);
+            border: 1px solid var(--green-mid);
+            color: var(--green-light);
+            padding: 0 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-qr-scan:hover {
+            background-color: var(--green-mid);
+            color: var(--primary-color);
+        }
+
+        /* Modal do Leitor de QR Code */
+        #qr-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #qr-modal-content {
+            background: var(--card-background);
+            padding: 20px;
+            border-radius: 12px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+
+        #reader {
+            width: 100%;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .btn-close-qr {
+            background: var(--error-color);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
         /* --- BOTÃO PRINCIPAL COM GRADIENTE CMAA --- */
         .btn-submit {
             width: 100%;
@@ -282,7 +355,17 @@
             <form id="ticket-form">
                 <div class="form-group">
                     <label for="ticket_registration">Matrícula</label>
-                    <input type="text" id="ticket_registration" placeholder="Digite a matrícula (7 a 9 dígitos)" inputmode="numeric" pattern="\d{7,9}" maxlength="9" required>
+                    <div class="input-qr-group">
+                        <input type="text" id="ticket_registration" placeholder="Digite a matrícula (7 a 9 dígitos)" inputmode="numeric" pattern="\d{7,9}" maxlength="9" required>
+                        <button type="button" id="start-qr-btn" class="btn-qr-scan" title="Escanear QR Code">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="3" width="7" height="7"></rect>
+                                <rect x="14" y="14" width="7" height="7"></rect>
+                                <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -325,11 +408,21 @@
 
     </div>
 
+    <!-- MODAL DO LEITOR DE QR CODE -->
+    <div id="qr-modal">
+        <div id="qr-modal-content">
+            <h3 style="margin-top:0; color: var(--green-light);">Aponte a Câmera para o QR Code</h3>
+            <div id="reader"></div>
+            <button id="close-qr-btn" class="btn-close-qr">Cancelar</button>
+        </div>
+    </div>
+
     <script>
         const LOGIN_API_URL = "https://0cbbf36298f0e42e8f72ebb373f876.e6.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/18/workflows/13c4ca7aceb94a08bb90658d07fa1141/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=xtil9ZxsyJtRpn4IQnOr60f5DEgRecU4kzNSA9q3pug";
         const CREATE_TICKET_API_URL = "https://0cbbf36298f0e42e8f72ebb373f876.e6.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/21/workflows/b15b2903cfdd4cedbc84ba98b0e4b9f1/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=iYLgTU7LcGHFro5WNJsRAKoHiwwNfaey3MKvmbfaf64";
 
         let currentUser = null;
+        let html5QrCode = null;
 
         // --- LÓGICA DE LOGIN ---
         document.getElementById('login-btn').addEventListener('click', async function() {
@@ -408,6 +501,51 @@
         document.getElementById('ticket_registration').addEventListener('input', function(e) {
             this.value = this.value.replace(/\D/g, '');
         });
+
+        // --- LÓGICA DE LEITURA DO QR CODE ---
+        const qrModal = document.getElementById('qr-modal');
+        const startQrBtn = document.getElementById('start-qr-btn');
+        const closeQrBtn = document.getElementById('close-qr-btn');
+
+        startQrBtn.addEventListener('click', () => {
+            qrModal.style.display = 'flex';
+            html5QrCode = new Html5Qrcode("reader");
+
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 }
+                },
+                (decodedText) => {
+                    // Extrai apenas dígitos caso o QR Code contenha texto extra
+                    const cleanCode = decodedText.replace(/\D/g, '');
+                    document.getElementById('ticket_registration').value = cleanCode;
+                    stopScanner();
+                },
+                (errorMessage) => {
+                    // Ignora erros de varredura enquanto procura por QR Codes
+                }
+            ).catch(err => {
+                alert('Erro ao acessar a câmera. Verifique se deu permissão de acesso.');
+                stopScanner();
+            });
+        });
+
+        closeQrBtn.addEventListener('click', stopScanner);
+
+        function stopScanner() {
+            if (html5QrCode) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    qrModal.style.display = 'none';
+                }).catch(err => {
+                    qrModal.style.display = 'none';
+                });
+            } else {
+                qrModal.style.display = 'none';
+            }
+        }
 
         // --- LÓGICA DE CRIAÇÃO DO ATENDIMENTO ---
         document.getElementById('ticket-form').addEventListener('submit', async function(e) {
