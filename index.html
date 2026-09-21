@@ -1,422 +1,281 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal de Dados CMAA - Atendimento</title>
-    <!-- Fonte profissional do Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&family=Poppins:wght@300;500&display=swap" rel="stylesheet">
-    
-    <!-- Biblioteca HTML5-QRCode para leitura da câmera -->
+    <title>Registro de Atendimento - Unimed</title>
+    <!-- Lib para leitura do QR Code -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
-    
     <style>
-        /* --- ESTILOS GERAIS --- */
         :root {
-            --primary-color: #0d1117; 
-            --green-dark: #1b853a;   
-            --green-mid: #68c067;    
-            --green-light: #b0d995;  
-            --accent-gradient: linear-gradient(90deg, var(--green-light) 0%, var(--green-mid) 50%, var(--green-dark) 100%);
-            --text-on-dark: #f0f6fc;
-            --input-background: #161b22;
-            --card-background: #1e242d;
-            --success-color: #2ea44f;
-            --error-color: #cb2431;
+            --primary-color: #00875f;
+            --primary-hover: #006647;
+            --bg-color: #f4f6f8;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --error-color: #d93025;
+            --success-color: #188038;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         body {
-            font-family: 'Montserrat', sans-serif;
-            background-color: var(--primary-color);
-            color: var(--text-on-dark);
-            margin: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            padding: 20px 0;
-            box-sizing: border-box;
-            transition: all 0.3s ease;
+            padding: 20px;
         }
 
-        /* --- CONTAINER PRINCIPAL --- */
-        .portal-container {
-            width: 90%;
-            max-width: 500px;
-            background-color: var(--card-background);
-            padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            transition: all 0.5s ease;
-            position: relative;
-        }
-
-        .portal-container::after {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 6px;
-            border-radius: 12px 12px 0 0;
-            background: var(--accent-gradient);
-        }
-
-        /* --- TELA DE LOGIN --- */
-        #login-screen {
+        .container {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 480px;
+            padding: 24px;
             display: flex;
             flex-direction: column;
-            align-items: center;
+            gap: 16px;
         }
 
-        .logo-login {
-            max-width: 300px;
-            height: auto;
-            margin-bottom: 40px;
-        }
-
-        .login-title {
-            font-family: 'Poppins', sans-serif;
-            font-weight: 500;
-            font-size: 1.5rem;
-            margin-bottom: 30px;
-            color: var(--green-light);
+        h2 {
+            color: var(--primary-color);
             text-align: center;
+            margin-bottom: 8px;
         }
 
-        /* --- TELA DO FORMULÁRIO (CHAMADOS) --- */
-        #ticket-screen {
-            display: none;
-            flex-direction: column;
-        }
-
-        .header-ticket {
+        .header-user {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid rgba(240, 246, 252, 0.1);
+            padding-bottom: 12px;
+            border-bottom: 1px solid #eee;
         }
 
-        .logo-header {
-            height: 40px;
-            width: auto;
-        }
-
-        #logout-btn {
-            background-color: transparent;
-            color: #ccc;
-            border: 1px solid #ccc;
-            padding: 8px 16px;
-            border-radius: 20px;
-            cursor: pointer;
-            transition: background 0.2s;
-            font-size: 0.8rem;
-        }
-
-        #logout-btn:hover {
-            border-color: var(--error-color);
-            color: var(--error-color);
-        }
-
-        .welcome-msg {
-            font-family: 'Poppins', sans-serif;
-            margin: 0;
-            font-size: 1.2rem;
-            color: #ddd;
-        }
-
-        /* --- COMPONENTES DE FORMULÁRIO COMUNS --- */
         .form-group {
-            width: 100%;
-            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin-bottom: 12px;
         }
 
         label {
-            display: block;
-            margin-bottom: 8px;
             font-weight: 600;
             font-size: 0.9rem;
-            color: #aaa;
         }
 
-        input, textarea, select {
+        input, select, textarea {
             width: 100%;
-            padding: 15px 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
             font-size: 1rem;
-            background-color: var(--input-background);
-            border: 1px solid rgba(240, 246, 252, 0.1);
-            border-radius: 8px;
-            color: var(--text-on-dark);
-            box-sizing: border-box;
-            transition: border-color 0.3s;
         }
 
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--green-mid);
-            box-shadow: 0 0 10px rgba(104, 192, 103, 0.3);
+        textarea {
+            resize: vertical;
+            min-height: 80px;
         }
 
-        input::placeholder, textarea::placeholder {
-            color: rgba(240, 246, 252, 0.3);
-        }
-
-        /* --- INPUT COM BOTÃO DE QR CODE --- */
-        .input-qr-group {
+        .input-group-qr {
             display: flex;
-            gap: 10px;
+            gap: 8px;
         }
 
-        .input-qr-group input {
-            flex: 1;
-        }
-
-        .btn-qr-scan {
-            background-color: var(--input-background);
-            border: 1px solid var(--green-mid);
-            color: var(--green-light);
-            padding: 0 15px;
-            border-radius: 8px;
+        button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 4px;
+            font-weight: bold;
             cursor: pointer;
+            transition: background-color 0.2s;
             display: flex;
-            align-items: center;
             justify-content: center;
-            transition: all 0.2s;
+            align-items: center;
+            gap: 8px;
         }
 
-        .btn-qr-scan:hover {
-            background-color: var(--green-mid);
-            color: var(--primary-color);
+        button:hover {
+            background-color: var(--primary-hover);
         }
 
-        /* Modal do Leitor de QR Code */
-        #qr-modal {
+        button:disabled {
+            background-color: #a0a0a0;
+            cursor: not-allowed;
+        }
+
+        .btn-logout {
+            background-color: transparent;
+            color: var(--error-color);
+            border: 1px solid var(--error-color);
+            padding: 6px 12px;
+            font-size: 0.85rem;
+        }
+
+        .btn-logout:hover {
+            background-color: #fce8e6;
+        }
+
+        .loading-spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-top: 2px solid transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .feedback-message {
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .message-error {
+            background-color: #fce8e6;
+            color: var(--error-color);
+            border: 1px solid #fad2cf;
+        }
+
+        .message-success {
+            background-color: #e6f4ea;
+            color: var(--success-color);
+            border: 1px solid #ceead6;
+        }
+
+        /* Modal do QR Code */
+        .modal {
             display: none;
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 1000;
+            background-color: rgba(0, 0, 0, 0.6);
             justify-content: center;
             align-items: center;
-            flex-direction: column;
+            z-index: 1000;
         }
 
-        #qr-modal-content {
-            background: var(--card-background);
+        .modal-content {
+            background: white;
             padding: 20px;
-            border-radius: 12px;
+            border-radius: 8px;
             width: 90%;
             max-width: 400px;
             text-align: center;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
         }
 
         #reader {
             width: 100%;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
-
-        .btn-close-qr {
-            background: var(--error-color);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-weight: 600;
-        }
-
-        /* --- BOTÃO PRINCIPAL COM GRADIENTE CMAA --- */
-        .btn-submit {
-            width: 100%;
-            padding: 18px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            font-family: 'Montserrat', sans-serif;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            position: relative;
-            background: var(--accent-gradient);
-            background-size: 200% 100%;
-            background-position: left center;
-        }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(27, 133, 58, 0.4);
-            background-position: right center;
-        }
-
-        .btn-submit:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
-        }
-
-        /* --- FEEDBACK VISUAL --- */
-        .loading-spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        .feedback-message {
-            margin-top: 15px;
-            padding: 12px;
-            border-radius: 6px;
-            text-align: center;
-            font-size: 0.95rem;
-            font-weight: 500;
-            display: none;
-        }
-
-        .message-success {
-            display: block;
-            background-color: rgba(46, 164, 79, 0.2);
-            color: var(--success-color);
-            border: 1px solid var(--success-color);
-        }
-
-        .message-error {
-            display: block;
-            background-color: rgba(203, 36, 49, 0.2);
-            color: var(--error-color);
-            border: 1px solid var(--error-color);
-        }
-
-        @media (max-width: 600px) {
-            .portal-container {
-                width: 95%;
-                padding: 25px;
-            }
-            .logo-login { max-width: 200px; }
-            .login-title { font-size: 1.2rem; }
-            input, textarea, select { padding: 12px 15px; }
+            margin-top: 10px;
         }
     </style>
 </head>
 <body>
 
-    <div class="portal-container">
-        
-        <!-- 1. TELA DE LOGIN -->
-        <section id="login-screen">
-            <img src="CMAA.png" alt="CMAA Logo - Energia que transforma" class="logo-login">
-            <h2 class="login-title">Acesso Restrito: Área de Dados</h2>
-            
-            <div class="form-group">
-                <label for="username">Nome de Usuário / Email</label>
-                <input type="text" id="username" placeholder="seu.usuario" required>
-            </div>
-            
-            <div class="form-group">
-                <label for="password">Senha de Acesso</label>
-                <input type="password" id="password" placeholder="******" required>
-            </div>
-            
-            <button id="login-btn" class="btn-submit">
-                <div class="loading-spinner" id="login-spinner"></div>
-                ACESSAR PORTAL
-            </button>
-            
-            <div class="feedback-message" id="login-message"></div>
-        </section>
-
-        <!-- 2. TELA DE REGISTRO DE TRATATIVA -->
-        <section id="ticket-screen">
-            <header class="header-ticket">
-                <img src="CMAA.png" alt="CMAA Logo" class="logo-header">
-                <div>
-                    <span id="user-greeting" class="welcome-msg">Portal de Chamados</span>
-                    <button id="logout-btn">Sair</button>
-                </div>
-            </header>
-            
-            <form id="ticket-form">
-                <div class="form-group">
-                    <label for="ticket_registration">Matrícula</label>
-                    <div class="input-qr-group">
-                        <input type="text" id="ticket_registration" placeholder="Digite a matrícula (6 a 9 dígitos)" inputmode="numeric" pattern="\d{6,9}" maxlength="9" required>
-                        <button type="button" id="start-qr-btn" class="btn-qr-scan" title="Escanear QR Code">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="3" width="7" height="7"></rect>
-                                <rect x="14" y="14" width="7" height="7"></rect>
-                                <rect x="3" y="14" width="7" height="7"></rect>
-                            </svg>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="ticket_name">Nome</label>
-                    <input type="text" id="ticket_name" placeholder="Digite o nome completo" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="ticket_request_type">Tipo de Solicitação</label>
-                    <select id="ticket_request_type" required>
-                        <option value="" disabled selected>Selecione o tipo de solicitação...</option>
-                        <option value="Dúvidas">Dúvidas</option>
-                        <option value="Reclamação">Reclamação</option>
-                        <option value="Consulta de Protocolo/Atendimento Pendente">Consulta de Protocolo/Atendimento</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="ticket_description">Descrição da Tratativa</label>
-                    <textarea id="ticket_description" rows="6" placeholder="Descreva os detalhes da tratativa..." required></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="ticket_status">Status</label>
-                    <select id="ticket_status" required>
-                        <option value="" disabled selected>Selecione o status...</option>
-                        <option value="Resolvido">Resolvido</option>
-                        <option value="Pendente">Pendente</option>
-                    </select>
-                </div>
-                
-                <button type="submit" id="submit-ticket-btn" class="btn-submit">
-                    <div class="loading-spinner" id="ticket-spinner"></div>
-                    REGISTRAR ATENDIMENTO
-                </button>
-            </form>
-            
-            <div class="feedback-message" id="ticket-message"></div>
-        </section>
-
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen" class="container">
+        <h2>Acesso ao Portal</h2>
+        <div class="form-group">
+            <label for="username">Usuário (E-mail)</label>
+            <input type="text" id="username" placeholder="usuario@unimed.com.br">
+        </div>
+        <div class="form-group">
+            <label for="password">Senha (Numérica)</label>
+            <input type="password" id="password" placeholder="Digite apenas números">
+        </div>
+        <div id="login-message" class="feedback-message"></div>
+        <button id="login-btn">
+            <span id="login-spinner" class="loading-spinner"></span>
+            ACESSAR PORTAL
+        </button>
     </div>
 
-    <!-- MODAL DO LEITOR DE QR CODE -->
-    <div id="qr-modal">
-        <div id="qr-modal-content">
-            <h3 style="margin-top:0; color: var(--green-light);">Aponte a Câmera para o QR Code</h3>
+    <!-- TELA DE REGISTRO DE ATENDIMENTO -->
+    <div id="ticket-screen" class="container" style="display: none;">
+        <div class="header-user">
+            <span id="user-greeting" style="font-weight: bold;"></span>
+            <button id="logout-btn" class="btn-logout">Sair</button>
+        </div>
+
+        <h2>Registro de Atendimento</h2>
+
+        <form id="ticket-form">
+            <div class="form-group">
+                <label for="ticket_registration">Matrícula (7 a 9 dígitos)</label>
+                <div class="input-group-qr">
+                    <input type="text" id="ticket_registration" maxlength="9" placeholder="Ex: 12345678" required>
+                    <button type="button" id="start-qr-btn" title="Escanear QR Code">📷 QR</button>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="ticket_name">Nome Completo</label>
+                <input type="text" id="ticket_name" placeholder="Nome do cliente/beneficiário" required>
+            </div>
+
+            <div class="form-group">
+                <label for="ticket_request_type">Tipo de Solicitação</label>
+                <select id="ticket_request_type" required>
+                    <option value="">Selecione...</option>
+                    <option value="Dúvida">Dúvida</option>
+                    <option value="Reclamação">Reclamação</option>
+                    <option value="Solicitação">Solicitação</option>
+                    <option value="Autorização">Autorização</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="ticket_description">Descrição / Tratativa</label>
+                <textarea id="ticket_description" placeholder="Detalhes do atendimento..." required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="ticket_status">Status</label>
+                <select id="ticket_status" required>
+                    <option value="Concluído">Concluído</option>
+                    <option value="Pendente">Pendente</option>
+                    <option value="Em Andamento">Em Andamento</option>
+                </select>
+            </div>
+
+            <div id="ticket-message" class="feedback-message"></div>
+
+            <button type="submit" id="submit-ticket-btn">
+                <span id="ticket-spinner" class="loading-spinner"></span>
+                REGISTRAR ATENDIMENTO
+            </button>
+        </form>
+    </div>
+
+    <!-- MODAL CAMERA QR CODE -->
+    <div id="qr-modal" class="modal">
+        <div class="modal-content">
+            <h3>Escanear QR Code</h3>
             <div id="reader"></div>
-            <button id="close-qr-btn" class="btn-close-qr">Cancelar</button>
+            <button id="close-qr-btn" style="margin-top: 15px; background-color: #666; width: 100%;">Fechar Câmera</button>
         </div>
     </div>
 
+    <!-- SCRIPT DE LÓGICA -->
     <script>
         const LOGIN_API_URL = "https://0cbbf36298f0e42e8f72ebb373f876.e6.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/18/workflows/13c4ca7aceb94a08bb90658d07fa1141/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=xtil9ZxsyJtRpn4IQnOr60f5DEgRecU4kzNSA9q3pug";
         const CREATE_TICKET_API_URL = "https://0cbbf36298f0e42e8f72ebb373f876.e6.environment.api.powerplatform.com:443/powerautomate/automations/direct/cu/21/workflows/b15b2903cfdd4cedbc84ba98b0e4b9f1/triggers/manual/paths/invoke?api-version=1&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=iYLgTU7LcGHFro5WNJsRAKoHiwwNfaey3MKvmbfaf64";
@@ -440,14 +299,21 @@
                 return;
             }
 
+            const passwordInt = parseInt(passwordRaw, 10);
+
+            if (isNaN(passwordInt)) {
+                showFeedback(messageDiv, 'A senha deve conter apenas números inteiros.', 'error');
+                return;
+            }
+
             const loginData = {
                 username: usernameInput,
-                password: passwordRaw
+                password: passwordInt
             };
 
             btn.disabled = true;
-            spinner.style.display = 'block';
-            btn.textContent = 'Autenticando...';
+            spinner.style.display = 'inline-block';
+            btn.lastChild.textContent = ' Autenticando...';
 
             try {
                 const response = await fetch(LOGIN_API_URL, {
@@ -456,7 +322,7 @@
                     body: JSON.stringify(loginData)
                 });
 
-                if (response.status === 200) {
+                if (response.ok || response.status === 200 || response.status === 202) {
                     currentUser = usernameInput;
                     showTicketScreen(currentUser);
                 } else if (response.status === 400) {
@@ -471,7 +337,7 @@
             } finally {
                 btn.disabled = false;
                 spinner.style.display = 'none';
-                btn.textContent = 'ACESSAR PORTAL';
+                btn.lastChild.textContent = 'ACESSAR PORTAL';
             }
         });
 
@@ -486,6 +352,10 @@
             currentUser = null;
             document.getElementById('username').value = '';
             document.getElementById('password').value = '';
+            
+            const messageDiv = document.getElementById('ticket-message');
+            messageDiv.style.display = 'none';
+
             document.getElementById('ticket-screen').style.display = 'none';
             document.getElementById('login-screen').style.display = 'flex';
         });
@@ -493,6 +363,14 @@
         // Restringe entrada de texto no campo Matrícula aceitando apenas dígitos
         document.getElementById('ticket_registration').addEventListener('input', function(e) {
             this.value = this.value.replace(/\D/g, '');
+        });
+
+        // Esconde mensagens de feedback quando o usuário recomeçar a digitar
+        document.getElementById('ticket-form').addEventListener('input', function() {
+            const messageDiv = document.getElementById('ticket-message');
+            if (messageDiv.style.display === 'block') {
+                messageDiv.style.display = 'none';
+            }
         });
 
         // --- LÓGICA DE LEITURA DO QR CODE ---
@@ -511,13 +389,12 @@
                     qrbox: { width: 250, height: 250 }
                 },
                 (decodedText) => {
-                    // Extrai apenas dígitos caso o QR Code contenha texto extra
                     const cleanCode = decodedText.replace(/\D/g, '');
                     document.getElementById('ticket_registration').value = cleanCode;
                     stopScanner();
                 },
                 (errorMessage) => {
-                    // Ignora erros de varredura enquanto procura por QR Codes
+                    // Ignora erros de varredura normais enquanto busca um código
                 }
             ).catch(err => {
                 alert('Erro ao acessar a câmera. Verifique se deu permissão de acesso.');
@@ -573,9 +450,10 @@
                 data_solicitacao: new Date().toISOString()
             };
 
+            // Atualiza a interface para estado de processamento
             btn.disabled = true;
-            spinner.style.display = 'block';
-            btn.textContent = 'Registrando...';
+            spinner.style.display = 'inline-block';
+            btn.lastChild.textContent = ' Registrando...';
 
             try {
                 const response = await fetch(CREATE_TICKET_API_URL, {
@@ -584,24 +462,20 @@
                     body: JSON.stringify(ticketData)
                 });
 
-                if (response.status === 200) {
+                if (response.ok || response.status === 200 || response.status === 202) {
                     showFeedback(messageDiv, '✅ Atendimento registrado com sucesso!', 'success');
-                    document.getElementById('ticket_registration').value = '';
-                    document.getElementById('ticket_name').value = '';
-                    document.getElementById('ticket_request_type').value = '';
-                    document.getElementById('ticket_description').value = '';
-                    document.getElementById('ticket_status').value = '';
+                    document.getElementById('ticket-form').reset();
                 } else {
                     showFeedback(messageDiv, `❌ Não foi possível registrar o atendimento. Código de erro: ${response.status}`, 'error');
                 }
 
             } catch (error) {
                 console.error('Erro no envio:', error);
-                showFeedback(messageDiv, '❌ Erro ao comunicar com o servidor. Tente novamente.', 'error');
+                showFeedback(messageDiv, '❌ Erro de conexão com o servidor. Verifique a rede e tente novamente.', 'error');
             } finally {
                 btn.disabled = false;
                 spinner.style.display = 'none';
-                btn.textContent = 'REGISTRAR ATENDIMENTO';
+                btn.lastChild.textContent = 'REGISTRAR ATENDIMENTO';
             }
         });
 
